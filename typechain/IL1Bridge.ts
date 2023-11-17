@@ -61,7 +61,8 @@ export interface IL1BridgeInterface extends Interface {
       BigNumberish,
       BigNumberish,
       BigNumberish,
-      AddressLike
+      AddressLike,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
@@ -210,9 +211,9 @@ export interface IL1Bridge extends BaseContract {
       _depositSender: AddressLike,
       _l1Token: AddressLike,
       _l2TxHash: BytesLike,
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _merkleProof: BytesLike[]
     ],
     [void],
@@ -226,7 +227,8 @@ export interface IL1Bridge extends BaseContract {
       _amount: BigNumberish,
       _l2TxGasLimit: BigNumberish,
       _l2TxGasPerPubdataByte: BigNumberish,
-      _refundRecipient: AddressLike
+      _refundRecipient: AddressLike,
+      _l1Amount: BigNumberish
     ],
     [string],
     "payable"
@@ -234,9 +236,9 @@ export interface IL1Bridge extends BaseContract {
 
   finalizeWithdrawal: TypedContractMethod<
     [
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _message: BytesLike,
       _merkleProof: BytesLike[]
     ],
@@ -245,7 +247,7 @@ export interface IL1Bridge extends BaseContract {
   >;
 
   isWithdrawalFinalized: TypedContractMethod<
-    [_l2BlockNumber: BigNumberish, _l2MessageIndex: BigNumberish],
+    [_l2BatchNumber: BigNumberish, _l2MessageIndex: BigNumberish],
     [boolean],
     "view"
   >;
@@ -269,9 +271,9 @@ export interface IL1Bridge extends BaseContract {
       _depositSender: AddressLike,
       _l1Token: AddressLike,
       _l2TxHash: BytesLike,
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _merkleProof: BytesLike[]
     ],
     [void],
@@ -286,7 +288,8 @@ export interface IL1Bridge extends BaseContract {
       _amount: BigNumberish,
       _l2TxGasLimit: BigNumberish,
       _l2TxGasPerPubdataByte: BigNumberish,
-      _refundRecipient: AddressLike
+      _refundRecipient: AddressLike,
+      _l1Amount: BigNumberish
     ],
     [string],
     "payable"
@@ -295,9 +298,9 @@ export interface IL1Bridge extends BaseContract {
     nameOrSignature: "finalizeWithdrawal"
   ): TypedContractMethod<
     [
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _message: BytesLike,
       _merkleProof: BytesLike[]
     ],
@@ -307,7 +310,7 @@ export interface IL1Bridge extends BaseContract {
   getFunction(
     nameOrSignature: "isWithdrawalFinalized"
   ): TypedContractMethod<
-    [_l2BlockNumber: BigNumberish, _l2MessageIndex: BigNumberish],
+    [_l2BatchNumber: BigNumberish, _l2MessageIndex: BigNumberish],
     [boolean],
     "view"
   >;
