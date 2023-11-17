@@ -1519,7 +1519,7 @@ const _abi = [
             type: "uint256",
           },
         ],
-        internalType: "struct L2Transaction",
+        internalType: "struct L2Transaction.Transaction",
         name: "_l2tx",
         type: "tuple",
       },

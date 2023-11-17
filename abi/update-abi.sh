@@ -12,6 +12,7 @@ cat $OPEN_ZEPPELIN_CONTRACTS/token/ERC20/extensions/IERC20Metadata.sol/IERC20Met
 cat $ETHEREUM_CONTRACTS/bridge/interfaces/IL1Bridge.sol/IL1Bridge.json | jq '{ abi: .abi}' > IL1Bridge.json
 cat $ETHEREUM_CONTRACTS/zksync/interfaces/IZkSync.sol/IZkSync.json | jq '{ abi: .abi}' > IZkSync.json
 cat $ETHEREUM_CONTRACTS/common/interfaces/IAllowList.sol/IAllowList.json | jq '{ abi: .abi}' > IAllowList.json
+cat $ETHEREUM_CONTRACTS/zksync/libraries/L2Transaction.sol/L2Transaction.json | jq '{ abi: .abi}' > L2Transaction.json
 
 cat $ZKSYNC_CONTRACTS/bridge/interfaces/IL2Bridge.sol/IL2Bridge.json | jq '{ abi: .abi}' > IL2Bridge.json
 cat $ZKSYNC_CONTRACTS/interfaces/IPaymasterFlow.sol/IPaymasterFlow.json | jq '{ abi: .abi}' > IPaymasterFlow.json

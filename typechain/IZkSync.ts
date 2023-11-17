@@ -88,25 +88,6 @@ export type L2MessageStructOutput = [
   data: string
 ] & { txNumberInBatch: bigint; sender: string; data: string };
 
-export type L2TransactionStruct = {
-  l2Contract: AddressLike;
-  l2Value: BigNumberish;
-  l2GasLimit: BigNumberish;
-  l2GasPerPubdataByteLimit: BigNumberish;
-};
-
-export type L2TransactionStructOutput = [
-  l2Contract: string,
-  l2Value: bigint,
-  l2GasLimit: bigint,
-  l2GasPerPubdataByteLimit: bigint
-] & {
-  l2Contract: string;
-  l2Value: bigint;
-  l2GasLimit: bigint;
-  l2GasPerPubdataByteLimit: bigint;
-};
-
 export declare namespace Diamond {
   export type FacetCutStruct = {
     facet: AddressLike;
@@ -287,6 +268,27 @@ export declare namespace IGetters {
   export type FacetStructOutput = [addr: string, selectors: string[]] & {
     addr: string;
     selectors: string[];
+  };
+}
+
+export declare namespace L2Transaction {
+  export type TransactionStruct = {
+    l2Contract: AddressLike;
+    l2Value: BigNumberish;
+    l2GasLimit: BigNumberish;
+    l2GasPerPubdataByteLimit: BigNumberish;
+  };
+
+  export type TransactionStructOutput = [
+    l2Contract: string,
+    l2Value: bigint,
+    l2GasLimit: bigint,
+    l2GasPerPubdataByteLimit: bigint
+  ] & {
+    l2Contract: string;
+    l2Value: bigint;
+    l2GasLimit: bigint;
+    l2GasPerPubdataByteLimit: bigint;
   };
 }
 
@@ -542,7 +544,7 @@ export interface IZkSyncInterface extends Interface {
   encodeFunctionData(
     functionFragment: "requestL2Transaction",
     values: [
-      L2TransactionStruct,
+      L2Transaction.TransactionStruct,
       BytesLike,
       BytesLike[],
       AddressLike,
@@ -1276,7 +1278,7 @@ export interface IZkSync extends BaseContract {
 
   requestL2Transaction: TypedContractMethod<
     [
-      _l2tx: L2TransactionStruct,
+      _l2tx: L2Transaction.TransactionStruct,
       _calldata: BytesLike,
       _factoryDeps: BytesLike[],
       _refundRecipient: AddressLike,
@@ -1538,7 +1540,7 @@ export interface IZkSync extends BaseContract {
     nameOrSignature: "requestL2Transaction"
   ): TypedContractMethod<
     [
-      _l2tx: L2TransactionStruct,
+      _l2tx: L2Transaction.TransactionStruct,
       _calldata: BytesLike,
       _factoryDeps: BytesLike[],
       _refundRecipient: AddressLike,
