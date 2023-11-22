@@ -8,7 +8,7 @@ import { TOKENS } from "./const";
 describe("setup", () => {
     const PRIVATE_KEY = "0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110";
 
-    const provider = Provider.getDefaultProvider(types.Network.Localhost);
+    const provider = Provider.getDefaultProvider(types.Network.Localhost) as Provider;
     const ethProvider = ethers.getDefaultProvider("http://localhost:8545");
 
     const wallet = new Wallet(PRIVATE_KEY, provider, ethProvider);

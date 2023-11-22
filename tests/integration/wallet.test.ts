@@ -13,7 +13,7 @@ describe("Wallet", () => {
     const MNEMONIC = "stuff slice staff easily soup parent arm payment cotton trade scatter struggle";
     const RECEIVER = "0xa61464658AfeAf65CccaaFD3a512b69A83B77618";
 
-    const provider = Provider.getDefaultProvider(types.Network.Localhost);
+    const provider = Provider.getDefaultProvider(types.Network.Localhost) as Provider;
     const ethProvider = ethers.getDefaultProvider("http://localhost:8545");
     const wallet = new Wallet(PRIVATE_KEY, provider, ethProvider);
 
@@ -388,6 +388,7 @@ describe("Wallet", () => {
     describe("#getRequestExecuteTx()", () => {
         it("should return request execute transaction", async () => {
             const result = await wallet.getRequestExecuteTx({
+                l1Value: 0,
                 contractAddress: await provider.getMainContractAddress(),
                 calldata: "0x",
                 l2Value: 7_000_000_000,
@@ -399,6 +400,7 @@ describe("Wallet", () => {
     describe("#estimateGasRequestExecute()", () => {
         it("should return gas estimation for request execute transaction", async () => {
             const result = await wallet.estimateGasRequestExecute({
+                l1Value: 0,
                 contractAddress: await provider.getMainContractAddress(),
                 calldata: "0x",
                 l2Value: 7_000_000_000,
@@ -413,6 +415,7 @@ describe("Wallet", () => {
             const l2BalanceBeforeExecution = await wallet.getBalance();
             const l1BalanceBeforeExecution = await wallet.getBalanceL1();
             const tx = await wallet.requestExecute({
+                l1Value: 0,
                 contractAddress: await provider.getMainContractAddress(),
                 calldata: "0x",
                 l2Value: amount,
