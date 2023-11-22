@@ -45,9 +45,7 @@ import {
     TransactionResponse,
 } from "./types";
 
-import {
-    L2Transaction,
-} from "../typechain/IZkSync"
+import { L2Transaction } from "../typechain/IZkSync";
 
 type Constructor<T = {}> = new (...args: any[]) => T;
 
@@ -344,9 +342,8 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             );
 
             if (token == ETH_ADDRESS) {
-                overrides.value ??= baseCost + BigInt(operatorTip) + BigInt(amount);
-
                 return {
+                    l1Value: baseCost + BigInt(operatorTip) + BigInt(amount),
                     contractAddress: to,
                     calldata: "0x",
                     l2Value: amount,
@@ -356,18 +353,18 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 };
             } else {
                 let refundRecipient = tx.refundRecipient ?? ethers.ZeroAddress;
-                const args: [Address, Address, BigNumberish, BigNumberish, BigNumberish, Address, BigNumberish] = [
-                    to,
-                    token,
-                    amount,
-                    tx.l2GasLimit,
-                    tx.gasPerPubdataByte,
-                    refundRecipient,
-                    0,
-                ];
+                const cost = baseCost + BigInt(operatorTip);
+                const args: [
+                    Address,
+                    Address,
+                    BigNumberish,
+                    BigNumberish,
+                    BigNumberish,
+                    Address,
+                    BigNumberish,
+                ] = [to, token, amount, tx.l2GasLimit, tx.gasPerPubdataByte, refundRecipient, cost];
 
-                overrides.value ??= baseCost + BigInt(operatorTip);
-                await checkBaseCost(baseCost, overrides.value);
+                await checkBaseCost(baseCost, cost);
                 overrides.from ??= await this.getAddress();
 
                 let l2WethToken = ethers.ZeroAddress;
@@ -679,6 +676,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         }
 
         async requestExecute(transaction: {
+            l1Value: BigNumberish;
             contractAddress: Address;
             calldata: string;
             l2GasLimit: BigNumberish;
@@ -696,6 +694,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         }
 
         async estimateGasRequestExecute(transaction: {
+            l1Value: BigNumberish;
             contractAddress: Address;
             calldata: string;
             l2GasLimit?: BigNumberish;
@@ -716,6 +715,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         }
 
         async getRequestExecuteTx(transaction: {
+            l1Value: BigNumberish;
             contractAddress: Address;
             calldata: string;
             l2GasLimit?: BigNumberish;
@@ -729,6 +729,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             const zksyncContract = await this.getMainContract();
 
             const { ...tx } = transaction;
+            tx.l1Value ??= 0;
             tx.l2Value ??= 0;
             tx.operatorTip ??= 0;
             tx.factoryDeps ??= [];
@@ -740,11 +741,11 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
 
             const {
                 contractAddress,
+                l1Value,
                 l2Value,
                 calldata,
                 l2GasLimit,
                 factoryDeps,
-                operatorTip,
                 overrides,
                 gasPerPubdataByte,
                 refundRecipient,
@@ -759,9 +760,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 gasLimit: l2GasLimit,
             });
 
-            overrides.value ??= baseCost + BigInt(operatorTip) + BigInt(l2Value);
-
-            await checkBaseCost(baseCost, overrides.value);
+            await checkBaseCost(baseCost, l1Value);
 
             const l2Tx: L2Transaction.TransactionStruct = {
                 l2Contract: contractAddress,
@@ -775,7 +774,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 calldata,
                 factoryDeps,
                 refundRecipient,
-                overrides.value,
+                overrides.value as BigNumberish,
             );
         }
     };
