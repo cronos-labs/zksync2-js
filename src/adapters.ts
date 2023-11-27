@@ -45,6 +45,10 @@ import {
     TransactionResponse,
 } from "./types";
 
+import {
+    L2TransactionStruct,
+} from "../typechain/IZkSync"
+
 type Constructor<T = {}> = new (...args: any[]) => T;
 
 interface TxSender {
@@ -352,13 +356,14 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 };
             } else {
                 let refundRecipient = tx.refundRecipient ?? ethers.ZeroAddress;
-                const args: [Address, Address, BigNumberish, BigNumberish, BigNumberish, Address] = [
+                const args: [Address, Address, BigNumberish, BigNumberish, BigNumberish, Address, BigNumberish] = [
                     to,
                     token,
                     amount,
                     tx.l2GasLimit,
                     tx.gasPerPubdataByte,
                     refundRecipient,
+                    0,
                 ];
 
                 overrides.value ??= baseCost + BigInt(operatorTip);
@@ -758,15 +763,19 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
 
             await checkBaseCost(baseCost, overrides.value);
 
-            return await zksyncContract.requestL2Transaction.populateTransaction(
-                contractAddress,
+            const l2Tx: L2TransactionStruct = {
+                l2Contract: contractAddress,
                 l2Value,
-                calldata,
                 l2GasLimit,
-                REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT,
+                l2GasPerPubdataByteLimit: REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT,
+            }
+
+            return await zksyncContract.requestL2Transaction.populateTransaction(
+                l2Tx,
+                calldata,
                 factoryDeps,
                 refundRecipient,
-                overrides,
+                overrides.value,
             );
         }
     };
