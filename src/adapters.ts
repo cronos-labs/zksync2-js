@@ -45,9 +45,7 @@ import {
     TransactionResponse,
 } from "./types";
 
-import {
-    L2TransactionStruct,
-} from "../typechain/IZkSync"
+import { L2TransactionStruct } from "../typechain/IZkSync";
 
 type Constructor<T = {}> = new (...args: any[]) => T;
 
@@ -356,15 +354,15 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 };
             } else {
                 let refundRecipient = tx.refundRecipient ?? ethers.ZeroAddress;
-                const args: [Address, Address, BigNumberish, BigNumberish, BigNumberish, Address, BigNumberish] = [
-                    to,
-                    token,
-                    amount,
-                    tx.l2GasLimit,
-                    tx.gasPerPubdataByte,
-                    refundRecipient,
-                    0,
-                ];
+                const args: [
+                    Address,
+                    Address,
+                    BigNumberish,
+                    BigNumberish,
+                    BigNumberish,
+                    Address,
+                    BigNumberish,
+                ] = [to, token, amount, tx.l2GasLimit, tx.gasPerPubdataByte, refundRecipient, 0];
 
                 overrides.value ??= baseCost + BigInt(operatorTip);
                 await checkBaseCost(baseCost, overrides.value);
@@ -768,7 +766,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 l2Value,
                 l2GasLimit,
                 l2GasPerPubdataByteLimit: REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT,
-            }
+            };
 
             return await zksyncContract.requestL2Transaction.populateTransaction(
                 l2Tx,
