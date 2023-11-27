@@ -13,7 +13,7 @@ describe("Wallet", () => {
     const MNEMONIC = "stuff slice staff easily soup parent arm payment cotton trade scatter struggle";
     const RECEIVER = "0xa61464658AfeAf65CccaaFD3a512b69A83B77618";
 
-    const provider = Provider.getDefaultProvider(types.Network.Localhost);
+    const provider = Provider.getDefaultProvider(types.Network.Localhost) as Provider;
     const ethProvider = ethers.getDefaultProvider("http://localhost:8545");
     const wallet = new Wallet(PRIVATE_KEY, provider, ethProvider);
 
