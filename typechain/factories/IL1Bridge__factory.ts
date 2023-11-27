@@ -168,6 +168,11 @@ const _abi = [
         name: "_refundRecipient",
         type: "address",
       },
+      {
+        internalType: "uint256",
+        name: "_l1Amount",
+        type: "uint256",
+      },
     ],
     name: "deposit",
     outputs: [
