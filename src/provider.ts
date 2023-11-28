@@ -17,7 +17,13 @@ import {
     FetchRequest,
     AddressLike,
 } from "ethers";
-import { IERC20__factory, IEthToken__factory, IL1Bridge, IL2Bridge__factory } from "../typechain";
+import {
+    IERC20__factory,
+    IEthToken__factory,
+    IL1Bridge,
+    IL2Bridge,
+    IL2Bridge__factory,
+} from "../typechain";
 import {
     Address,
     TransactionResponse,
@@ -148,15 +154,19 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             if (token == ETH_ADDRESS) {
                 return ETH_ADDRESS;
             } else {
-                allowsBridgeWETH();
                 const bridgeAddresses = await this.getDefaultBridgeAddresses();
-                const l2WethBridge = IL2Bridge__factory.connect(bridgeAddresses.wethL2 as string, this);
-                try {
-                    const l2WethToken = await l2WethBridge.l2TokenAddress(token);
-                    if (l2WethToken != ethers.ZeroAddress) {
-                        return l2WethToken;
-                    }
-                } catch (e) {}
+                if (ALLOW_BRIDGE_WETH) {
+                    const l2WethBridge = IL2Bridge__factory.connect(
+                        bridgeAddresses.wethL2 as string,
+                        this,
+                    );
+                    try {
+                        const l2WethToken = await l2WethBridge.l2TokenAddress(token);
+                        if (l2WethToken != ethers.ZeroAddress) {
+                            return l2WethToken;
+                        }
+                    } catch (e) {}
+                }
 
                 const erc20Bridge = IL2Bridge__factory.connect(bridgeAddresses.erc20L2!, this);
                 return await erc20Bridge.l2TokenAddress(token);
@@ -167,15 +177,19 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             if (token == ETH_ADDRESS) {
                 return ETH_ADDRESS;
             } else {
-                allowsBridgeWETH();
                 const bridgeAddresses = await this.getDefaultBridgeAddresses();
-                const l2WethBridge = IL2Bridge__factory.connect(bridgeAddresses.wethL2 as string, this);
-                try {
-                    const l1WethToken = await l2WethBridge.l1TokenAddress(token);
-                    if (l1WethToken != ethers.ZeroAddress) {
-                        return l1WethToken;
-                    }
-                } catch (e) {}
+                if (ALLOW_BRIDGE_WETH) {
+                    const l2WethBridge = IL2Bridge__factory.connect(
+                        bridgeAddresses.wethL2 as string,
+                        this,
+                    );
+                    try {
+                        const l1WethToken = await l2WethBridge.l1TokenAddress(token);
+                        if (l1WethToken != ethers.ZeroAddress) {
+                            return l1WethToken;
+                        }
+                    } catch (e) {}
+                }
                 const erc20Bridge = IL2Bridge__factory.connect(bridgeAddresses.erc20L2!, this);
                 return await erc20Bridge.l1TokenAddress(token);
             }
@@ -232,8 +246,12 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             return {
                 erc20L1: this.contractAddresses().erc20BridgeL1,
                 erc20L2: this.contractAddresses().erc20BridgeL2,
-                wethL1: ALLOW_BRIDGE_WETH ? this.contractAddresses().wethBridgeL1 : null as unknown as string,
-                wethL2: ALLOW_BRIDGE_WETH ? this.contractAddresses().wethBridgeL2 : null as unknown as string,
+                wethL1: ALLOW_BRIDGE_WETH
+                    ? this.contractAddresses().wethBridgeL1
+                    : (null as unknown as string),
+                wethL2: ALLOW_BRIDGE_WETH
+                    ? this.contractAddresses().wethBridgeL2
+                    : (null as unknown as string),
             };
         }
 
@@ -288,7 +306,6 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             bridgeAddress?: Address;
             overrides?: ethers.Overrides;
         }): Promise<EthersTransactionRequest> {
-            allowsBridgeWETH();
             const { ...tx } = transaction;
 
             if (tx.to == null && tx.from == null) {
@@ -300,6 +317,7 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             tx.overrides.from ??= tx.from;
 
             if (isETH(tx.token)) {
+                allowsBridgeWETH();
                 if (!tx.overrides.value) {
                     tx.overrides.value = tx.amount;
                 }
@@ -318,11 +336,17 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
 
             if (tx.bridgeAddress == null) {
                 const bridgeAddresses = await this.getDefaultBridgeAddresses();
-                const l2WethBridge = IL2Bridge__factory.connect(bridgeAddresses.wethL2 as string, this);
                 let l1WethToken = ethers.ZeroAddress;
-                try {
-                    l1WethToken = await l2WethBridge.l1TokenAddress(tx.token);
-                } catch (e) {}
+                if (ALLOW_BRIDGE_WETH) {
+                    const l2WethBridge = IL2Bridge__factory.connect(
+                        bridgeAddresses.wethL2 as string,
+                        this,
+                    );
+                    try {
+                        l1WethToken = await l2WethBridge.l1TokenAddress(tx.token);
+                    } catch (e) {}
+                }
+
                 tx.bridgeAddress =
                     l1WethToken != ethers.ZeroAddress ? bridgeAddresses.wethL2 : bridgeAddresses.erc20L2;
             }
@@ -355,12 +379,12 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             token?: Address;
             overrides?: ethers.Overrides;
         }): Promise<EthersTransactionRequest> {
-            allowsBridgeWETH();
             const { ...tx } = transaction;
             tx.overrides ??= {};
             tx.overrides.from ??= tx.from;
 
             if (tx.token == null || tx.token == ETH_ADDRESS) {
+                allowsBridgeWETH();
                 return {
                     ...tx.overrides,
                     to: tx.to,
