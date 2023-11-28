@@ -60,6 +60,14 @@ export const DEFAULT_GAS_PER_PUBDATA_LIMIT = 50_000;
 // the cost per gas will be adjusted respectively. We will use 800 as a relatively optimal value for now.
 export const REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT = 800;
 
+export const ALLOW_BRIDGE_WETH = false;
+
+export function allowsBridgeWETH() {
+    if (!ALLOW_BRIDGE_WETH) {
+        throw new Error(`bridge WETH is not allowed`);
+    }
+}
+
 export function isETH(token: Address) {
     return token.toLowerCase() == ETH_ADDRESS || token.toLowerCase() == L2_ETH_TOKEN_ADDRESS;
 }
