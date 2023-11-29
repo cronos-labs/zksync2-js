@@ -65,7 +65,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             const addresses = await this._providerL2().getDefaultBridgeAddresses();
             return {
                 erc20: IL1BridgeFactory.connect(addresses.erc20L1, this._signerL1()),
-                weth: IL1BridgeFactory.connect(addresses.wethL1, this._signerL1()),
+                weth: IL1BridgeFactory.connect(addresses.erc20L1, this._signerL1()),
             };
         }
 
@@ -329,9 +329,9 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             );
 
             if (token == ETH_ADDRESS) {
-                overrides.value ??= baseCost.add(operatorTip).add(amount);
 
                 return {
+                    l1Value: baseCost.add(operatorTip).add(amount),
                     contractAddress: to,
                     calldata: "0x",
                     l2Value: amount,
@@ -342,17 +342,18 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 };
             } else {
                 let refundRecipient = tx.refundRecipient ?? ethers.constants.AddressZero;
-                const args: [Address, Address, BigNumberish, BigNumberish, BigNumberish, Address] = [
+                const cost = baseCost.add(operatorTip);
+                const args: [Address, Address, BigNumberish, BigNumberish, BigNumberish, Address, BigNumberish] = [
                     to,
                     token,
                     amount,
                     tx.l2GasLimit,
                     tx.gasPerPubdataByte,
                     refundRecipient,
+                    cost,
                 ];
 
-                overrides.value ??= baseCost.add(operatorTip);
-                await checkBaseCost(baseCost, overrides.value);
+                await checkBaseCost(baseCost, cost);
 
                 let l2WethToken = ethers.constants.AddressZero;
                 try {
@@ -644,6 +645,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         }
 
         async requestExecute(transaction: {
+            l1Value: BigNumberish;
             contractAddress: Address;
             calldata: BytesLike;
             l2GasLimit?: BigNumberish;
@@ -661,6 +663,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         }
 
         async estimateGasRequestExecute(transaction: {
+            l1Value: BigNumberish;
             contractAddress: Address;
             calldata: BytesLike;
             l2GasLimit?: BigNumberish;
@@ -681,6 +684,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         }
 
         async getRequestExecuteTx(transaction: {
+            l1Value: BigNumberish;
             contractAddress: Address;
             calldata: BytesLike;
             l2GasLimit?: BigNumberish;
@@ -694,6 +698,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             const zksyncContract = await this.getMainContract();
 
             const { ...tx } = transaction;
+            tx.l1Value ??= BigNumber.from(0);
             tx.l2Value ??= BigNumber.from(0);
             tx.operatorTip ??= BigNumber.from(0);
             tx.factoryDeps ??= [];
@@ -703,6 +708,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             tx.l2GasLimit ??= await this._providerL2().estimateL1ToL2Execute(transaction);
 
             const {
+                l1Value,
                 contractAddress,
                 l2Value,
                 calldata,
@@ -722,20 +728,21 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 gasPerPubdataByte,
                 gasLimit: l2GasLimit,
             });
-
-            overrides.value ??= baseCost.add(operatorTip).add(l2Value);
-
-            await checkBaseCost(baseCost, overrides.value);
+            
+            await checkBaseCost(baseCost, l1Value);
 
             return await zksyncContract.populateTransaction.requestL2Transaction(
-                contractAddress,
-                l2Value,
+                {
+                    l2Contract: contractAddress,
+                    l2Value,
+                    l2GasLimit,
+                    l2GasPerPubdataByteLimit: REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT
+                },
                 calldata,
-                l2GasLimit,
-                REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT,
                 factoryDeps,
                 refundRecipient,
-                overrides,
+                l1Value,
+                overrides
             );
         }
     };

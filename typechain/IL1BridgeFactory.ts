@@ -123,7 +123,7 @@ const _abi = [
       },
       {
         internalType: "uint256",
-        name: "_l2BlockNumber",
+        name: "_l2BatchNumber",
         type: "uint256",
       },
       {
@@ -133,7 +133,7 @@ const _abi = [
       },
       {
         internalType: "uint16",
-        name: "_l2TxNumberInBlock",
+        name: "_l2TxNumberInBatch",
         type: "uint16",
       },
       {
@@ -179,6 +179,11 @@ const _abi = [
         name: "_refundRecipient",
         type: "address",
       },
+      {
+        internalType: "uint256",
+        name: "_l1Amount",
+        type: "uint256",
+      },
     ],
     name: "deposit",
     outputs: [
@@ -195,7 +200,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_l2BlockNumber",
+        name: "_l2BatchNumber",
         type: "uint256",
       },
       {
@@ -205,7 +210,7 @@ const _abi = [
       },
       {
         internalType: "uint16",
-        name: "_l2TxNumberInBlock",
+        name: "_l2TxNumberInBatch",
         type: "uint16",
       },
       {
@@ -228,7 +233,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_l2BlockNumber",
+        name: "_l2BatchNumber",
         type: "uint256",
       },
       {

@@ -23,13 +23,13 @@ const _abi = [
       {
         indexed: true,
         internalType: "uint256",
-        name: "blockNumber",
+        name: "batchNumber",
         type: "uint256",
       },
       {
         indexed: true,
         internalType: "bytes32",
-        name: "blockHash",
+        name: "batchHash",
         type: "bytes32",
       },
       {
@@ -48,13 +48,13 @@ const _abi = [
       {
         indexed: true,
         internalType: "uint256",
-        name: "blockNumber",
+        name: "batchNumber",
         type: "uint256",
       },
       {
         indexed: true,
         internalType: "bytes32",
-        name: "blockHash",
+        name: "batchHash",
         type: "bytes32",
       },
       {
@@ -73,19 +73,19 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "totalBlocksCommitted",
+        name: "totalBatchesCommitted",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "totalBlocksVerified",
+        name: "totalBatchesVerified",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "totalBlocksExecuted",
+        name: "totalBatchesExecuted",
         type: "uint256",
       },
     ],
@@ -98,36 +98,17 @@ const _abi = [
       {
         indexed: true,
         internalType: "uint256",
-        name: "previousLastVerifiedBlock",
+        name: "previousLastVerifiedBatch",
         type: "uint256",
       },
       {
         indexed: true,
         internalType: "uint256",
-        name: "currentLastVerifiedBlock",
+        name: "currentLastVerifiedBatch",
         type: "uint256",
       },
     ],
     name: "BlocksVerification",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "proposalId",
-        type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "proposalHash",
-        type: "bytes32",
-      },
-    ],
-    name: "CancelUpgradeProposal",
     type: "event",
   },
   {
@@ -153,22 +134,49 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: true,
-        internalType: "uint256",
-        name: "proposalId",
-        type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "proposalHash",
-        type: "bytes32",
-      },
-      {
+        components: [
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "facet",
+                type: "address",
+              },
+              {
+                internalType: "enum Diamond.Action",
+                name: "action",
+                type: "uint8",
+              },
+              {
+                internalType: "bool",
+                name: "isFreezable",
+                type: "bool",
+              },
+              {
+                internalType: "bytes4[]",
+                name: "selectors",
+                type: "bytes4[]",
+              },
+            ],
+            internalType: "struct Diamond.FacetCut[]",
+            name: "facetCuts",
+            type: "tuple[]",
+          },
+          {
+            internalType: "address",
+            name: "initAddress",
+            type: "address",
+          },
+          {
+            internalType: "bytes",
+            name: "initCalldata",
+            type: "bytes",
+          },
+        ],
         indexed: false,
-        internalType: "bytes32",
-        name: "proposalSalt",
-        type: "bytes32",
+        internalType: "struct Diamond.DiamondCutData",
+        name: "diamondCut",
+        type: "tuple",
       },
     ],
     name: "ExecuteUpgrade",
@@ -199,6 +207,25 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
+        name: "oldAdmin",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "newAdmin",
+        type: "address",
+      },
+    ],
+    name: "NewAdmin",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
         name: "oldGovernor",
         type: "address",
       },
@@ -210,6 +237,25 @@ const _abi = [
       },
     ],
     name: "NewGovernor",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "oldPendingAdmin",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "newPendingAdmin",
+        type: "address",
+      },
+    ],
+    name: "NewPendingAdmin",
     type: "event",
   },
   {
@@ -371,108 +417,6 @@ const _abi = [
   },
   {
     anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "proposalId",
-        type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "proposalHash",
-        type: "bytes32",
-      },
-    ],
-    name: "ProposeShadowUpgrade",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        components: [
-          {
-            components: [
-              {
-                internalType: "address",
-                name: "facet",
-                type: "address",
-              },
-              {
-                internalType: "enum Diamond.Action",
-                name: "action",
-                type: "uint8",
-              },
-              {
-                internalType: "bool",
-                name: "isFreezable",
-                type: "bool",
-              },
-              {
-                internalType: "bytes4[]",
-                name: "selectors",
-                type: "bytes4[]",
-              },
-            ],
-            internalType: "struct Diamond.FacetCut[]",
-            name: "facetCuts",
-            type: "tuple[]",
-          },
-          {
-            internalType: "address",
-            name: "initAddress",
-            type: "address",
-          },
-          {
-            internalType: "bytes",
-            name: "initCalldata",
-            type: "bytes",
-          },
-        ],
-        indexed: false,
-        internalType: "struct Diamond.DiamondCutData",
-        name: "diamondCut",
-        type: "tuple",
-      },
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "proposalId",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "bytes32",
-        name: "proposalSalt",
-        type: "bytes32",
-      },
-    ],
-    name: "ProposeTransparentUpgrade",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "proposalId",
-        type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "proposalHash",
-        type: "bytes32",
-      },
-    ],
-    name: "SecurityCouncilUpgradeApprove",
-    type: "event",
-  },
-  {
-    anonymous: false,
     inputs: [],
     name: "Unfreeze",
     type: "event",
@@ -498,22 +442,29 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "acceptAdmin",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "acceptGovernor",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
   },
   {
-    inputs: [
+    inputs: [],
+    name: "baseTokenAddress",
+    outputs: [
       {
-        internalType: "bytes32",
-        name: "_proposedUpgradeHash",
-        type: "bytes32",
+        internalType: "address",
+        name: "",
+        type: "address",
       },
     ],
-    name: "cancelUpgradeProposal",
-    outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -522,12 +473,12 @@ const _abi = [
         components: [
           {
             internalType: "uint64",
-            name: "blockNumber",
+            name: "batchNumber",
             type: "uint64",
           },
           {
             internalType: "bytes32",
-            name: "blockHash",
+            name: "batchHash",
             type: "bytes32",
           },
           {
@@ -561,15 +512,15 @@ const _abi = [
             type: "bytes32",
           },
         ],
-        internalType: "struct IExecutor.StoredBlockInfo",
-        name: "_lastCommittedBlockData",
+        internalType: "struct IExecutor.StoredBatchInfo",
+        name: "_lastCommittedBatchData",
         type: "tuple",
       },
       {
         components: [
           {
             internalType: "uint64",
-            name: "blockNumber",
+            name: "batchNumber",
             type: "uint64",
           },
           {
@@ -594,46 +545,36 @@ const _abi = [
           },
           {
             internalType: "bytes32",
-            name: "l2LogsTreeRoot",
-            type: "bytes32",
-          },
-          {
-            internalType: "bytes32",
             name: "priorityOperationsHash",
             type: "bytes32",
           },
           {
+            internalType: "bytes32",
+            name: "bootloaderHeapInitialContentsHash",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes32",
+            name: "eventsQueueStateHash",
+            type: "bytes32",
+          },
+          {
             internalType: "bytes",
-            name: "initialStorageChanges",
+            name: "systemLogs",
             type: "bytes",
           },
           {
             internalType: "bytes",
-            name: "repeatedStorageChanges",
+            name: "totalL2ToL1Pubdata",
             type: "bytes",
-          },
-          {
-            internalType: "bytes",
-            name: "l2Logs",
-            type: "bytes",
-          },
-          {
-            internalType: "bytes[]",
-            name: "l2ArbitraryLengthMessages",
-            type: "bytes[]",
-          },
-          {
-            internalType: "bytes[]",
-            name: "factoryDeps",
-            type: "bytes[]",
           },
         ],
-        internalType: "struct IExecutor.CommitBlockInfo[]",
-        name: "_newBlocksData",
+        internalType: "struct IExecutor.CommitBatchInfo[]",
+        name: "_newBatchesData",
         type: "tuple[]",
       },
     ],
-    name: "commitBlocks",
+    name: "commitBatches",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -644,12 +585,12 @@ const _abi = [
         components: [
           {
             internalType: "uint64",
-            name: "blockNumber",
+            name: "batchNumber",
             type: "uint64",
           },
           {
             internalType: "bytes32",
-            name: "blockHash",
+            name: "batchHash",
             type: "bytes32",
           },
           {
@@ -683,12 +624,12 @@ const _abi = [
             type: "bytes32",
           },
         ],
-        internalType: "struct IExecutor.StoredBlockInfo[]",
-        name: "_blocksData",
+        internalType: "struct IExecutor.StoredBatchInfo[]",
+        name: "_batchesData",
         type: "tuple[]",
       },
     ],
-    name: "executeBlocks",
+    name: "executeBatches",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -738,11 +679,6 @@ const _abi = [
         internalType: "struct Diamond.DiamondCutData",
         name: "_diamondCut",
         type: "tuple",
-      },
-      {
-        internalType: "bytes32",
-        name: "_proposalSalt",
-        type: "bytes32",
       },
     ],
     name: "executeUpgrade",
@@ -830,7 +766,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_l2BlockNumber",
+        name: "_l2BatchNumber",
         type: "uint256",
       },
       {
@@ -840,7 +776,7 @@ const _abi = [
       },
       {
         internalType: "uint16",
-        name: "_l2TxNumberInBlock",
+        name: "_l2TxNumberInBatch",
         type: "uint16",
       },
       {
@@ -874,19 +810,6 @@ const _abi = [
         internalType: "address",
         name: "",
         type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getCurrentProposalId",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -946,6 +869,45 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "getL2SystemContractsUpgradeBatchNumber",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getL2SystemContractsUpgradeTxHash",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getName",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getPendingGovernor",
     outputs: [
       {
@@ -985,32 +947,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "getProposedUpgradeHash",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getProposedUpgradeTimestamp",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "getProtocolVersion",
     outputs: [
       {
@@ -1024,20 +960,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "getSecurityCouncil",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getTotalBlocksCommitted",
+    name: "getTotalBatchesCommitted",
     outputs: [
       {
         internalType: "uint256",
@@ -1050,7 +973,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "getTotalBlocksExecuted",
+    name: "getTotalBatchesExecuted",
     outputs: [
       {
         internalType: "uint256",
@@ -1063,7 +986,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "getTotalBlocksVerified",
+    name: "getTotalBatchesVerified",
     outputs: [
       {
         internalType: "uint256",
@@ -1082,19 +1005,6 @@ const _abi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getUpgradeProposalState",
-    outputs: [
-      {
-        internalType: "enum UpgradeState",
-        name: "",
-        type: "uint8",
       },
     ],
     stateMutability: "view",
@@ -1145,19 +1055,6 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "isApprovedBySecurityCouncil",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "isDiamondStorageFrozen",
     outputs: [
       {
@@ -1173,7 +1070,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_l2BlockNumber",
+        name: "_l2BatchNumber",
         type: "uint256",
       },
       {
@@ -1254,7 +1151,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_blockNumber",
+        name: "_batchNumber",
         type: "uint256",
       },
     ],
@@ -1331,90 +1228,15 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "_proposalHash",
-        type: "bytes32",
-      },
-      {
-        internalType: "uint40",
-        name: "_proposalId",
-        type: "uint40",
-      },
-    ],
-    name: "proposeShadowUpgrade",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        components: [
-          {
-            components: [
-              {
-                internalType: "address",
-                name: "facet",
-                type: "address",
-              },
-              {
-                internalType: "enum Diamond.Action",
-                name: "action",
-                type: "uint8",
-              },
-              {
-                internalType: "bool",
-                name: "isFreezable",
-                type: "bool",
-              },
-              {
-                internalType: "bytes4[]",
-                name: "selectors",
-                type: "bytes4[]",
-              },
-            ],
-            internalType: "struct Diamond.FacetCut[]",
-            name: "facetCuts",
-            type: "tuple[]",
-          },
-          {
-            internalType: "address",
-            name: "initAddress",
-            type: "address",
-          },
-          {
-            internalType: "bytes",
-            name: "initCalldata",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct Diamond.DiamondCutData",
-        name: "_diamondCut",
-        type: "tuple",
-      },
-      {
-        internalType: "uint40",
-        name: "_proposalId",
-        type: "uint40",
-      },
-    ],
-    name: "proposeTransparentUpgrade",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         components: [
           {
             internalType: "uint64",
-            name: "blockNumber",
+            name: "batchNumber",
             type: "uint64",
           },
           {
             internalType: "bytes32",
-            name: "blockHash",
+            name: "batchHash",
             type: "bytes32",
           },
           {
@@ -1448,20 +1270,20 @@ const _abi = [
             type: "bytes32",
           },
         ],
-        internalType: "struct IExecutor.StoredBlockInfo",
-        name: "_prevBlock",
+        internalType: "struct IExecutor.StoredBatchInfo",
+        name: "_prevBatch",
         type: "tuple",
       },
       {
         components: [
           {
             internalType: "uint64",
-            name: "blockNumber",
+            name: "batchNumber",
             type: "uint64",
           },
           {
             internalType: "bytes32",
-            name: "blockHash",
+            name: "batchHash",
             type: "bytes32",
           },
           {
@@ -1495,8 +1317,8 @@ const _abi = [
             type: "bytes32",
           },
         ],
-        internalType: "struct IExecutor.StoredBlockInfo[]",
-        name: "_committedBlocks",
+        internalType: "struct IExecutor.StoredBatchInfo[]",
+        name: "_committedBatches",
         type: "tuple[]",
       },
       {
@@ -1517,7 +1339,7 @@ const _abi = [
         type: "tuple",
       },
     ],
-    name: "proveBlocks",
+    name: "proveBatches",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -1531,7 +1353,7 @@ const _abi = [
       },
       {
         internalType: "uint256",
-        name: "_l2BlockNumber",
+        name: "_l2BatchNumber",
         type: "uint256",
       },
       {
@@ -1541,7 +1363,7 @@ const _abi = [
       },
       {
         internalType: "uint16",
-        name: "_l2TxNumberInBlock",
+        name: "_l2TxNumberInBatch",
         type: "uint16",
       },
       {
@@ -1570,7 +1392,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_blockNumber",
+        name: "_l2BatchNumber",
         type: "uint256",
       },
       {
@@ -1592,7 +1414,7 @@ const _abi = [
           },
           {
             internalType: "uint16",
-            name: "txNumberInBlock",
+            name: "txNumberInBatch",
             type: "uint16",
           },
           {
@@ -1636,7 +1458,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_blockNumber",
+        name: "_l2BatchNumber",
         type: "uint256",
       },
       {
@@ -1648,7 +1470,7 @@ const _abi = [
         components: [
           {
             internalType: "uint16",
-            name: "txNumberInBlock",
+            name: "txNumberInBatch",
             type: "uint16",
           },
           {
@@ -1686,29 +1508,36 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "_contractL2",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "_l2Value",
-        type: "uint256",
+        components: [
+          {
+            internalType: "address",
+            name: "l2Contract",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "l2Value",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "l2GasLimit",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "l2GasPerPubdataByteLimit",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct L2Transaction",
+        name: "_l2tx",
+        type: "tuple",
       },
       {
         internalType: "bytes",
         name: "_calldata",
         type: "bytes",
-      },
-      {
-        internalType: "uint256",
-        name: "_l2GasLimit",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_l2GasPerPubdataByteLimit",
-        type: "uint256",
       },
       {
         internalType: "bytes[]",
@@ -1719,6 +1548,11 @@ const _abi = [
         internalType: "address",
         name: "_refundRecipient",
         type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "_baseAmount",
+        type: "uint256",
       },
     ],
     name: "requestL2Transaction",
@@ -1736,11 +1570,11 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_newLastBlock",
+        name: "_newLastBatch",
         type: "uint256",
       },
     ],
-    name: "revertBlocks",
+    name: "revertBatches",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -1748,12 +1582,12 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "_upgradeProposalHash",
-        type: "bytes32",
+        internalType: "address",
+        name: "_newPendingAdmin",
+        type: "address",
       },
     ],
-    name: "securityCouncilUpgradeApprove",
+    name: "setPendingAdmin",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -1819,11 +1653,11 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_blockNumber",
+        name: "_batchNumber",
         type: "uint256",
       },
     ],
-    name: "storedBlockHash",
+    name: "storedBatchHash",
     outputs: [
       {
         internalType: "bytes32",
@@ -1839,74 +1673,6 @@ const _abi = [
     name: "unfreezeDiamond",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        components: [
-          {
-            components: [
-              {
-                internalType: "address",
-                name: "facet",
-                type: "address",
-              },
-              {
-                internalType: "enum Diamond.Action",
-                name: "action",
-                type: "uint8",
-              },
-              {
-                internalType: "bool",
-                name: "isFreezable",
-                type: "bool",
-              },
-              {
-                internalType: "bytes4[]",
-                name: "selectors",
-                type: "bytes4[]",
-              },
-            ],
-            internalType: "struct Diamond.FacetCut[]",
-            name: "facetCuts",
-            type: "tuple[]",
-          },
-          {
-            internalType: "address",
-            name: "initAddress",
-            type: "address",
-          },
-          {
-            internalType: "bytes",
-            name: "initCalldata",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct Diamond.DiamondCutData",
-        name: "_diamondCut",
-        type: "tuple",
-      },
-      {
-        internalType: "uint256",
-        name: "_proposalId",
-        type: "uint256",
-      },
-      {
-        internalType: "bytes32",
-        name: "_salt",
-        type: "bytes32",
-      },
-    ],
-    name: "upgradeProposalHash",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
-    ],
-    stateMutability: "pure",
     type: "function",
   },
 ];
