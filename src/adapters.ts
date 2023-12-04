@@ -189,7 +189,10 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         }): Promise<PriorityOpResponse> {
             const depositTx = await this.getDepositTx(transaction);
 
-            if (transaction.token == ETH_ADDRESS) {
+            const zksyncContract = await this.getMainContract();
+            const baseTokenAddress = await zksyncContract.baseTokenAddress();
+
+            if (transaction.token == baseTokenAddress) {
                 const baseGasLimit = await this.estimateGasRequestExecute(depositTx);
                 const gasLimit = scaleGasLimit(baseGasLimit);
 
@@ -328,8 +331,8 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 tx.gasPerPubdataByte,
             );
 
-            if (token == ETH_ADDRESS) {
-
+            const baseTokenAddress = await zksyncContract.baseTokenAddress();
+            if (token == baseTokenAddress) {
                 return {
                     l1Value: baseCost.add(operatorTip).add(amount),
                     contractAddress: to,
