@@ -223,9 +223,11 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 const bridgeContracts = await this.getL1BridgeContracts();
                 if (transaction.approveERC20) {
                     let l2WethToken = ethers.ZeroAddress;
-                    try {
-                        l2WethToken = await bridgeContracts.weth.l2TokenAddress(transaction.token);
-                    } catch (e) {}
+                    if (ALLOW_BRIDGE_WETH) {
+                        try {
+                            l2WethToken = await bridgeContracts.weth.l2TokenAddress(transaction.token);
+                        } catch (e) {}
+                    }
                     // If the token is Wrapped Ether, use its bridge.
                     const proposedBridge =
                         l2WethToken != ethers.ZeroAddress
@@ -793,7 +795,8 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 calldata,
                 factoryDeps,
                 refundRecipient,
-                overrides.value,
+                0,
+                overrides,
             );
         }
     };

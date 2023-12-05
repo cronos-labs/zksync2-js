@@ -531,6 +531,7 @@ export async function estimateDefaultBridgeDepositL2Gas(
     from ??= ethers.Wallet.createRandom().address;
 
     if (token == ETH_ADDRESS) {
+        allowsBridgeWETH();
         return await providerL2.estimateL1ToL2Execute({
             contractAddress: to,
             gasPerPubdataByte: gasPerPubdataByte,
@@ -541,13 +542,16 @@ export async function estimateDefaultBridgeDepositL2Gas(
     } else {
         let value, l1BridgeAddress, l2BridgeAddress, bridgeData;
         const bridgeAddresses = await providerL2.getDefaultBridgeAddresses();
-        const l1WethBridge = IL1Bridge__factory.connect(bridgeAddresses.wethL1 as string, providerL1);
         let l2WethToken = ethers.ZeroAddress;
-        try {
-            l2WethToken = await l1WethBridge.l2TokenAddress(token);
-        } catch (e) {}
+        if (ALLOW_BRIDGE_WETH) {
+            const l1WethBridge = IL1Bridge__factory.connect(bridgeAddresses.wethL1 as string, providerL1);
 
-        if (l2WethToken != ethers.ZeroAddress) {
+            try {
+                l2WethToken = await l1WethBridge.l2TokenAddress(token);
+            } catch (e) {}
+        }
+
+        if (l2WethToken != ethers.ZeroAddress && ALLOW_BRIDGE_WETH) {
             value = amount;
             l1BridgeAddress = bridgeAddresses.wethL1;
             l2BridgeAddress = bridgeAddresses.wethL2;
