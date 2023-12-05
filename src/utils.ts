@@ -544,7 +544,10 @@ export async function estimateDefaultBridgeDepositL2Gas(
         const bridgeAddresses = await providerL2.getDefaultBridgeAddresses();
         let l2WethToken = ethers.ZeroAddress;
         if (ALLOW_BRIDGE_WETH) {
-            const l1WethBridge = IL1Bridge__factory.connect(bridgeAddresses.wethL1 as string, providerL1);
+            const l1WethBridge = IL1Bridge__factory.connect(
+                bridgeAddresses.wethL1 as string,
+                providerL1,
+            );
 
             try {
                 l2WethToken = await l1WethBridge.l2TokenAddress(token);
