@@ -55,7 +55,7 @@ import {
     L2_ETH_TOKEN_ADDRESS,
     EIP712_TX_TYPE,
     REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT,
-    allowsBridgeWETH,
+    checkBridgeWETHAllowed,
     ALLOW_BRIDGE_WETH,
 } from "./utils";
 import { Signer } from "./signer";
@@ -317,7 +317,7 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             tx.overrides.from ??= tx.from;
 
             if (isETH(tx.token)) {
-                allowsBridgeWETH();
+                checkBridgeWETHAllowed();
                 if (!tx.overrides.value) {
                     tx.overrides.value = tx.amount;
                 }
@@ -384,7 +384,7 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             tx.overrides.from ??= tx.from;
 
             if (tx.token == null || tx.token == ETH_ADDRESS) {
-                allowsBridgeWETH();
+                checkBridgeWETHAllowed();
                 return {
                     ...tx.overrides,
                     to: tx.to,

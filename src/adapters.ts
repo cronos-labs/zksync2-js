@@ -25,7 +25,7 @@ import {
     undoL1ToL2Alias,
     NONCE_HOLDER_ADDRESS,
     ALLOW_BRIDGE_WETH,
-    allowsBridgeWETH,
+    checkBridgeWETHAllowed,
 } from "./utils";
 import {
     IERC20__factory,
@@ -358,7 +358,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             );
 
             if (token == ETH_ADDRESS) {
-                allowsBridgeWETH();
+                checkBridgeWETHAllowed();
                 overrides.value ??= baseCost + BigInt(operatorTip) + BigInt(amount);
 
                 return {
@@ -584,7 +584,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 await this.finalizeWithdrawalParams(withdrawalHash, index);
 
             if (isETH(sender)) {
-                allowsBridgeWETH();
+                checkBridgeWETHAllowed();
                 const withdrawTo = ethers.dataSlice(message, 4, 24);
                 const l1Bridges = await this.getL1BridgeContracts();
                 // If the destination address matches the address of the L1 WETH contract,
@@ -641,7 +641,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             }
 
             if (isETH(sender)) {
-                allowsBridgeWETH();
+                checkBridgeWETHAllowed();
                 const contractAddress = await this._providerL2().getMainContractAddress();
                 const zksync = IZkSync__factory.connect(contractAddress, this._signerL1());
 

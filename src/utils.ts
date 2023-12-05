@@ -62,7 +62,7 @@ export const REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT = 800;
 
 export const ALLOW_BRIDGE_WETH = false;
 
-export function allowsBridgeWETH() {
+export function checkBridgeWETHAllowed() {
     if (!ALLOW_BRIDGE_WETH) {
         throw new Error(`bridge WETH is not allowed`);
     }
@@ -531,7 +531,7 @@ export async function estimateDefaultBridgeDepositL2Gas(
     from ??= ethers.Wallet.createRandom().address;
 
     if (token == ETH_ADDRESS) {
-        allowsBridgeWETH();
+        checkBridgeWETHAllowed();
         return await providerL2.estimateL1ToL2Execute({
             contractAddress: to,
             gasPerPubdataByte: gasPerPubdataByte,
