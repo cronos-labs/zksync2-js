@@ -61,7 +61,8 @@ export interface IL1BridgeInterface extends Interface {
       BigNumberish,
       BigNumberish,
       BigNumberish,
-      AddressLike
+      AddressLike,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
@@ -226,7 +227,8 @@ export interface IL1Bridge extends BaseContract {
       _amount: BigNumberish,
       _l2TxGasLimit: BigNumberish,
       _l2TxGasPerPubdataByte: BigNumberish,
-      _refundRecipient: AddressLike
+      _refundRecipient: AddressLike,
+      _l1Amount: BigNumberish
     ],
     [string],
     "payable"
@@ -286,7 +288,8 @@ export interface IL1Bridge extends BaseContract {
       _amount: BigNumberish,
       _l2TxGasLimit: BigNumberish,
       _l2TxGasPerPubdataByte: BigNumberish,
-      _refundRecipient: AddressLike
+      _refundRecipient: AddressLike,
+      _l1Amount: BigNumberish
     ],
     [string],
     "payable"

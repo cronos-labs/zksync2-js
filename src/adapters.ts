@@ -24,6 +24,8 @@ import {
     scaleGasLimit,
     undoL1ToL2Alias,
     NONCE_HOLDER_ADDRESS,
+    ALLOW_BRIDGE_WETH,
+    checkBridgeWETHAllowed,
 } from "./utils";
 import {
     IERC20__factory,
@@ -44,6 +46,8 @@ import {
     PriorityOpResponse,
     TransactionResponse,
 } from "./types";
+
+import { L2TransactionStruct } from "../typechain/IZkSync";
 
 type Constructor<T = {}> = new (...args: any[]) => T;
 
@@ -76,7 +80,9 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             const addresses = await this._providerL2().getDefaultBridgeAddresses();
             return {
                 erc20: IL1Bridge__factory.connect(addresses.erc20L1 as string, this._signerL1()),
-                weth: IL1Bridge__factory.connect(addresses.wethL1 as string, this._signerL1()),
+                weth: ALLOW_BRIDGE_WETH
+                    ? IL1Bridge__factory.connect(addresses.wethL1 as string, this._signerL1())
+                    : (null as unknown as IL1Bridge),
             };
         }
 
@@ -98,15 +104,17 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             if (!bridgeAddress) {
                 const bridgeContracts = await this.getL1BridgeContracts();
                 let l2WethToken = ethers.ZeroAddress;
-                try {
-                    l2WethToken = await bridgeContracts.weth.l2TokenAddress(token);
-                } catch (e) {}
+                if (ALLOW_BRIDGE_WETH) {
+                    try {
+                        l2WethToken = await bridgeContracts.weth.l2TokenAddress(token);
+                    } catch (e) {}
+                }
 
                 // If the token is Wrapped Ether, return allowance to its own bridge, otherwise to the default ERC20 bridge.
-                bridgeAddress =
-                    l2WethToken != ethers.ZeroAddress
-                        ? await bridgeContracts.weth.getAddress()
-                        : await bridgeContracts.erc20.getAddress();
+                bridgeAddress = await bridgeContracts.erc20.getAddress();
+                l2WethToken != ethers.ZeroAddress
+                    ? await bridgeContracts.weth.getAddress()
+                    : await bridgeContracts.erc20.getAddress();
             }
 
             const erc20contract = IERC20__factory.connect(token, this._providerL1());
@@ -119,14 +127,19 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             if (token == ETH_ADDRESS) {
                 return ETH_ADDRESS;
             }
+
             const bridgeContracts = await this.getL1BridgeContracts();
-            try {
-                const l2WethToken = await bridgeContracts.weth.l2TokenAddress(token);
-                // If the token is Wrapped Ether, return its L2 token address.
-                if (l2WethToken != ethers.ZeroAddress) {
-                    return l2WethToken;
-                }
-            } catch (e) {}
+            if (ALLOW_BRIDGE_WETH) {
+                try {
+                    let l2WethToken = ethers.ZeroAddress;
+                    l2WethToken = await bridgeContracts.weth.l2TokenAddress(token);
+
+                    // If the token is Wrapped Ether, return its L2 token address.
+                    if (l2WethToken != ethers.ZeroAddress) {
+                        return l2WethToken;
+                    }
+                } catch (e) {}
+            }
             return await bridgeContracts.erc20.l2TokenAddress(token);
         }
 
@@ -148,9 +161,11 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             if (bridgeAddress == null) {
                 const bridgeContracts = await this.getL1BridgeContracts();
                 let l2WethToken = ethers.ZeroAddress;
-                try {
-                    l2WethToken = await bridgeContracts.weth.l2TokenAddress(token);
-                } catch (e) {}
+                if (ALLOW_BRIDGE_WETH) {
+                    try {
+                        l2WethToken = await bridgeContracts.weth.l2TokenAddress(token);
+                    } catch (e) {}
+                }
                 // If the token is Wrapped Ether, return corresponding bridge, otherwise return default ERC20 bridge
                 bridgeAddress =
                     l2WethToken != ethers.ZeroAddress
@@ -208,9 +223,11 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 const bridgeContracts = await this.getL1BridgeContracts();
                 if (transaction.approveERC20) {
                     let l2WethToken = ethers.ZeroAddress;
-                    try {
-                        l2WethToken = await bridgeContracts.weth.l2TokenAddress(transaction.token);
-                    } catch (e) {}
+                    if (ALLOW_BRIDGE_WETH) {
+                        try {
+                            l2WethToken = await bridgeContracts.weth.l2TokenAddress(transaction.token);
+                        } catch (e) {}
+                    }
                     // If the token is Wrapped Ether, use its bridge.
                     const proposedBridge =
                         l2WethToken != ethers.ZeroAddress
@@ -297,7 +314,8 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             tx.gasPerPubdataByte ??= REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT;
             if (tx.bridgeAddress != null) {
                 const customBridgeData =
-                    tx.customBridgeData ?? (await bridgeContracts.weth.getAddress()) == tx.bridgeAddress
+                    tx.customBridgeData ??
+                    (ALLOW_BRIDGE_WETH && (await bridgeContracts.weth.getAddress()) == tx.bridgeAddress)
                         ? "0x"
                         : await getERC20DefaultBridgeData(tx.token, this._providerL1());
                 let bridge = IL1Bridge__factory.connect(tx.bridgeAddress, this._signerL1());
@@ -340,6 +358,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             );
 
             if (token == ETH_ADDRESS) {
+                checkBridgeWETHAllowed();
                 overrides.value ??= baseCost + BigInt(operatorTip) + BigInt(amount);
 
                 return {
@@ -352,23 +371,26 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 };
             } else {
                 let refundRecipient = tx.refundRecipient ?? ethers.ZeroAddress;
-                const args: [Address, Address, BigNumberish, BigNumberish, BigNumberish, Address] = [
-                    to,
-                    token,
-                    amount,
-                    tx.l2GasLimit,
-                    tx.gasPerPubdataByte,
-                    refundRecipient,
-                ];
+                const args: [
+                    Address,
+                    Address,
+                    BigNumberish,
+                    BigNumberish,
+                    BigNumberish,
+                    Address,
+                    BigNumberish,
+                ] = [to, token, amount, tx.l2GasLimit, tx.gasPerPubdataByte, refundRecipient, 0];
 
                 overrides.value ??= baseCost + BigInt(operatorTip);
                 await checkBaseCost(baseCost, overrides.value);
                 overrides.from ??= await this.getAddress();
 
                 let l2WethToken = ethers.ZeroAddress;
-                try {
-                    l2WethToken = await bridgeContracts.weth.l2TokenAddress(tx.token);
-                } catch (e) {}
+                if (ALLOW_BRIDGE_WETH) {
+                    try {
+                        l2WethToken = await bridgeContracts.weth.l2TokenAddress(tx.token);
+                    } catch (e) {}
+                }
 
                 const bridge =
                     l2WethToken != ethers.ZeroAddress ? bridgeContracts.weth : bridgeContracts.erc20;
@@ -405,7 +427,8 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             if (tx.bridgeAddress != null) {
                 const bridgeContracts = await this.getL1BridgeContracts();
                 const customBridgeData =
-                    tx.customBridgeData ?? (await bridgeContracts.weth.getAddress()) == tx.bridgeAddress
+                    tx.customBridgeData ??
+                    (ALLOW_BRIDGE_WETH && (await bridgeContracts.weth.getAddress()) == tx.bridgeAddress)
                         ? "0x"
                         : await getERC20DefaultBridgeData(tx.token, this._providerL1());
                 let bridge = IL1Bridge__factory.connect(tx.bridgeAddress, this._signerL1());
@@ -446,7 +469,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             if (baseCost >= selfBalanceETH + dummyAmount) {
                 const recommendedETHBalance =
                     BigInt(
-                        tx.token == ETH_ADDRESS
+                        ALLOW_BRIDGE_WETH && tx.token == ETH_ADDRESS
                             ? L1_RECOMMENDED_MIN_ETH_DEPOSIT_GAS_LIMIT
                             : L1_RECOMMENDED_MIN_ERC20_DEPOSIT_GAS_LIMIT,
                     ) *
@@ -561,6 +584,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 await this.finalizeWithdrawalParams(withdrawalHash, index);
 
             if (isETH(sender)) {
+                checkBridgeWETHAllowed();
                 const withdrawTo = ethers.dataSlice(message, 4, 24);
                 const l1Bridges = await this.getL1BridgeContracts();
                 // If the destination address matches the address of the L1 WETH contract,
@@ -617,6 +641,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             }
 
             if (isETH(sender)) {
+                checkBridgeWETHAllowed();
                 const contractAddress = await this._providerL2().getMainContractAddress();
                 const zksync = IZkSync__factory.connect(contractAddress, this._signerL1());
 
@@ -758,14 +783,19 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
 
             await checkBaseCost(baseCost, overrides.value);
 
-            return await zksyncContract.requestL2Transaction.populateTransaction(
-                contractAddress,
+            const l2Tx: L2TransactionStruct = {
+                l2Contract: contractAddress,
                 l2Value,
-                calldata,
                 l2GasLimit,
-                REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT,
+                l2GasPerPubdataByteLimit: REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT,
+            };
+
+            return await zksyncContract.requestL2Transaction.populateTransaction(
+                l2Tx,
+                calldata,
                 factoryDeps,
                 refundRecipient,
+                0,
                 overrides,
             );
         }
@@ -801,7 +831,9 @@ export function AdapterL2<TBase extends Constructor<TxSender>>(Base: TBase) {
             const addresses = await this._providerL2().getDefaultBridgeAddresses();
             return {
                 erc20: IL2Bridge__factory.connect(addresses.erc20L2 as string, this._signerL2()),
-                weth: IL2Bridge__factory.connect(addresses.wethL2 as string, this._signerL2()),
+                weth: ALLOW_BRIDGE_WETH
+                    ? IL2Bridge__factory.connect(addresses.wethL2 as string, this._signerL2())
+                    : (null as unknown as IL2Bridge),
             };
         }
 

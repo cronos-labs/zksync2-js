@@ -60,6 +60,14 @@ export const DEFAULT_GAS_PER_PUBDATA_LIMIT = 50_000;
 // the cost per gas will be adjusted respectively. We will use 800 as a relatively optimal value for now.
 export const REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT = 800;
 
+export const ALLOW_BRIDGE_WETH = false;
+
+export function checkBridgeWETHAllowed() {
+    if (!ALLOW_BRIDGE_WETH) {
+        throw new Error(`bridge WETH is not allowed`);
+    }
+}
+
 export function isETH(token: Address) {
     return token.toLowerCase() == ETH_ADDRESS || token.toLowerCase() == L2_ETH_TOKEN_ADDRESS;
 }
@@ -523,6 +531,7 @@ export async function estimateDefaultBridgeDepositL2Gas(
     from ??= ethers.Wallet.createRandom().address;
 
     if (token == ETH_ADDRESS) {
+        checkBridgeWETHAllowed();
         return await providerL2.estimateL1ToL2Execute({
             contractAddress: to,
             gasPerPubdataByte: gasPerPubdataByte,
@@ -533,13 +542,19 @@ export async function estimateDefaultBridgeDepositL2Gas(
     } else {
         let value, l1BridgeAddress, l2BridgeAddress, bridgeData;
         const bridgeAddresses = await providerL2.getDefaultBridgeAddresses();
-        const l1WethBridge = IL1Bridge__factory.connect(bridgeAddresses.wethL1 as string, providerL1);
         let l2WethToken = ethers.ZeroAddress;
-        try {
-            l2WethToken = await l1WethBridge.l2TokenAddress(token);
-        } catch (e) {}
+        if (ALLOW_BRIDGE_WETH) {
+            const l1WethBridge = IL1Bridge__factory.connect(
+                bridgeAddresses.wethL1 as string,
+                providerL1,
+            );
 
-        if (l2WethToken != ethers.ZeroAddress) {
+            try {
+                l2WethToken = await l1WethBridge.l2TokenAddress(token);
+            } catch (e) {}
+        }
+
+        if (l2WethToken != ethers.ZeroAddress && ALLOW_BRIDGE_WETH) {
             value = amount;
             l1BridgeAddress = bridgeAddresses.wethL1;
             l2BridgeAddress = bridgeAddresses.wethL2;

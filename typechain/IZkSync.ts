@@ -88,6 +88,25 @@ export type L2MessageStructOutput = [
   data: string
 ] & { txNumberInBatch: bigint; sender: string; data: string };
 
+export type L2TransactionStruct = {
+  l2Contract: AddressLike;
+  l2Value: BigNumberish;
+  l2GasLimit: BigNumberish;
+  l2GasPerPubdataByteLimit: BigNumberish;
+};
+
+export type L2TransactionStructOutput = [
+  l2Contract: string,
+  l2Value: bigint,
+  l2GasLimit: bigint,
+  l2GasPerPubdataByteLimit: bigint
+] & {
+  l2Contract: string;
+  l2Value: bigint;
+  l2GasLimit: bigint;
+  l2GasPerPubdataByteLimit: bigint;
+};
+
 export declare namespace Diamond {
   export type FacetCutStruct = {
     facet: AddressLike;
@@ -276,6 +295,7 @@ export interface IZkSyncInterface extends Interface {
     nameOrSignature:
       | "acceptAdmin"
       | "acceptGovernor"
+      | "baseTokenAddress"
       | "commitBatches"
       | "executeBatches"
       | "executeUpgrade"
@@ -352,6 +372,10 @@ export interface IZkSyncInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "acceptGovernor",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "baseTokenAddress",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -518,13 +542,11 @@ export interface IZkSyncInterface extends Interface {
   encodeFunctionData(
     functionFragment: "requestL2Transaction",
     values: [
-      AddressLike,
-      BigNumberish,
+      L2TransactionStruct,
       BytesLike,
-      BigNumberish,
-      BigNumberish,
       BytesLike[],
-      AddressLike
+      AddressLike,
+      BigNumberish
     ]
   ): string;
   encodeFunctionData(
@@ -566,6 +588,10 @@ export interface IZkSyncInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "acceptGovernor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "baseTokenAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -1066,6 +1092,8 @@ export interface IZkSync extends BaseContract {
 
   acceptGovernor: TypedContractMethod<[], [void], "nonpayable">;
 
+  baseTokenAddress: TypedContractMethod<[], [string], "view">;
+
   commitBatches: TypedContractMethod<
     [
       _lastCommittedBatchData: IExecutor.StoredBatchInfoStruct,
@@ -1248,13 +1276,11 @@ export interface IZkSync extends BaseContract {
 
   requestL2Transaction: TypedContractMethod<
     [
-      _contractL2: AddressLike,
-      _l2Value: BigNumberish,
+      _l2tx: L2TransactionStruct,
       _calldata: BytesLike,
-      _l2GasLimit: BigNumberish,
-      _l2GasPerPubdataByteLimit: BigNumberish,
       _factoryDeps: BytesLike[],
-      _refundRecipient: AddressLike
+      _refundRecipient: AddressLike,
+      _baseAmount: BigNumberish
     ],
     [string],
     "payable"
@@ -1314,6 +1340,9 @@ export interface IZkSync extends BaseContract {
   getFunction(
     nameOrSignature: "acceptGovernor"
   ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "baseTokenAddress"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "commitBatches"
   ): TypedContractMethod<
@@ -1509,13 +1538,11 @@ export interface IZkSync extends BaseContract {
     nameOrSignature: "requestL2Transaction"
   ): TypedContractMethod<
     [
-      _contractL2: AddressLike,
-      _l2Value: BigNumberish,
+      _l2tx: L2TransactionStruct,
       _calldata: BytesLike,
-      _l2GasLimit: BigNumberish,
-      _l2GasPerPubdataByteLimit: BigNumberish,
       _factoryDeps: BytesLike[],
-      _refundRecipient: AddressLike
+      _refundRecipient: AddressLike,
+      _baseAmount: BigNumberish
     ],
     [string],
     "payable"
