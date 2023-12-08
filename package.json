@@ -1,6 +1,6 @@
 {
-    "name": "zksync2-js",
-    "version": "0.4.0",
+    "name": "@cronos-labs/zksync2-js",
+    "version": "0.4.0-test.1",
     "main": "build/src/index.js",
     "types": "build/src/index.d.ts",
     "description": "A Web3 library for interacting with the ZkSync Layer 2 scaling solution.",
@@ -13,12 +13,12 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/zksync-sdk/zksync2-js.git"
+        "url": "git+https://github.com/cronos-labs/zksync2-js.git"
     },
     "bugs": {
-        "url": "https://github.com/zksync-sdk/zksync2-js/issues"
+        "url": "https://github.com/cronos-labs/zksync2-js/issues"
     },
-    "homepage": "https://github.com/zksync-sdk/zksync2-js#readme",
+    "homepage": "https://github.com/cronos-labs/zksync2-js#readme",
     "keywords": [
         "zksync",
         "web3",
