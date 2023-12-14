@@ -211,7 +211,10 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         }): Promise<PriorityOpResponse> {
             const depositTx = await this.getDepositTx(transaction);
 
-            if (transaction.token == ETH_ADDRESS) {
+            const zksyncContract = await this.getMainContract();
+            const baseTokenAddress = await zksyncContract.baseTokenAddress();
+
+            if (transaction.token == baseTokenAddress) {
                 const baseGasLimit = await this.estimateGasRequestExecute(depositTx);
                 const gasLimit = scaleGasLimit(baseGasLimit);
 
@@ -278,7 +281,10 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             const depositTx = await this.getDepositTx(transaction);
 
             let baseGasLimit: bigint;
-            if (transaction.token == ETH_ADDRESS) {
+
+            const zksyncContract = await this.getMainContract();
+            const baseTokenAddress = await zksyncContract.baseTokenAddress();
+            if (transaction.token == baseTokenAddress) {
                 baseGasLimit = await this.estimateGasRequestExecute(depositTx);
             } else {
                 baseGasLimit = await this._providerL1().estimateGas(depositTx);
@@ -357,14 +363,24 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 tx.gasPerPubdataByte,
             );
 
+            const baseTokenAddress = await zksyncContract.baseTokenAddress();
+
             if (token == ETH_ADDRESS) {
                 checkBridgeWETHAllowed();
                 overrides.value ??= baseCost + BigInt(operatorTip) + BigInt(amount);
-
                 return {
                     contractAddress: to,
                     calldata: "0x",
-                    l2Value: amount,
+                    l2Value: 0,
+                    // For some reason typescript can not deduce that we've already set the tx.l2GasLimit
+                    l2GasLimit: tx.l2GasLimit!,
+                    ...tx,
+                };
+            } else if (token == baseTokenAddress) {
+                return {
+                    contractAddress: to,
+                    calldata: "0x",
+                    l2Value: 0,
                     // For some reason typescript can not deduce that we've already set the tx.l2GasLimit
                     l2GasLimit: tx.l2GasLimit!,
                     ...tx,
@@ -702,6 +718,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             contractAddress: Address;
             calldata: string;
             l2GasLimit: BigNumberish;
+            amount: BigNumberish;
             l2Value?: BigNumberish;
             factoryDeps?: ethers.BytesLike[];
             operatorTip?: BigNumberish;
@@ -718,6 +735,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         async estimateGasRequestExecute(transaction: {
             contractAddress: Address;
             calldata: string;
+            amount: BigNumberish;
             l2GasLimit?: BigNumberish;
             l2Value?: BigNumberish;
             factoryDeps?: ethers.BytesLike[];
@@ -738,6 +756,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         async getRequestExecuteTx(transaction: {
             contractAddress: Address;
             calldata: string;
+            amount: BigNumberish;
             l2GasLimit?: BigNumberish;
             l2Value?: BigNumberish;
             factoryDeps?: ethers.BytesLike[];
@@ -768,6 +787,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 overrides,
                 gasPerPubdataByte,
                 refundRecipient,
+                amount,
             } = tx;
 
             await insertGasPrice(this._providerL1(), overrides);
@@ -779,9 +799,9 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 gasLimit: l2GasLimit,
             });
 
-            overrides.value ??= baseCost + BigInt(operatorTip) + BigInt(l2Value);
-
-            await checkBaseCost(baseCost, overrides.value);
+            // fee on L2 is subsctracted from the amount
+            // overrides.value ??= baseCost + BigInt(operatorTip) + BigInt(l2Value);
+            // await checkBaseCost(baseCost, overrides.value);
 
             const l2Tx: L2TransactionStruct = {
                 l2Contract: contractAddress,
@@ -795,7 +815,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 calldata,
                 factoryDeps,
                 refundRecipient,
-                0,
+                amount,
                 overrides,
             );
         }

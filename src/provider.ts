@@ -317,7 +317,6 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             tx.overrides.from ??= tx.from;
 
             if (isETH(tx.token)) {
-                checkBridgeWETHAllowed();
                 if (!tx.overrides.value) {
                     tx.overrides.value = tx.amount;
                 }
@@ -384,7 +383,6 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             tx.overrides.from ??= tx.from;
 
             if (tx.token == null || tx.token == ETH_ADDRESS) {
-                checkBridgeWETHAllowed();
                 return {
                     ...tx.overrides,
                     to: tx.to,
