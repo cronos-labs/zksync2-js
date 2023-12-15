@@ -371,7 +371,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 return {
                     contractAddress: to,
                     calldata: "0x",
-                    l2Value: 0,
+                    l2Value: amount,
                     // For some reason typescript can not deduce that we've already set the tx.l2GasLimit
                     l2GasLimit: tx.l2GasLimit!,
                     ...tx,
@@ -387,6 +387,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 };
             } else {
                 let refundRecipient = tx.refundRecipient ?? ethers.ZeroAddress;
+                const l1Amount = baseCost + BigInt(operatorTip)
                 const args: [
                     Address,
                     Address,
@@ -395,9 +396,9 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                     BigNumberish,
                     Address,
                     BigNumberish,
-                ] = [to, token, amount, tx.l2GasLimit, tx.gasPerPubdataByte, refundRecipient, 0];
+                ] = [to, token, amount, tx.l2GasLimit, tx.gasPerPubdataByte, refundRecipient, l1Amount];
 
-                overrides.value ??= baseCost + BigInt(operatorTip);
+                // overrides.value ??= baseCost + BigInt(operatorTip);
                 await checkBaseCost(baseCost, overrides.value);
                 overrides.from ??= await this.getAddress();
 
