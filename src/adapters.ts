@@ -399,7 +399,8 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 ] = [to, token, amount, tx.l2GasLimit, tx.gasPerPubdataByte, refundRecipient, l1Amount];
 
                 // overrides.value ??= baseCost + BigInt(operatorTip);
-                await checkBaseCost(baseCost, overrides.value);
+                const value = baseCost + BigInt(operatorTip);
+                await checkBaseCost(baseCost, value);
                 overrides.from ??= await this.getAddress();
 
                 let l2WethToken = ethers.ZeroAddress;
