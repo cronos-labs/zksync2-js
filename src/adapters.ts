@@ -481,10 +481,12 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 tx.gasPerPubdataByte,
             );
 
-            const selfBalanceETH = await this.getBalanceL1();
+            const baseTokenAddress = await zksyncContract.baseTokenAddress();
+
+            const selfBalanceCRO = await this.getBalanceL1(baseTokenAddress);
 
             // We could zero in, because the final fee will anyway be bigger than
-            if (baseCost >= selfBalanceETH + dummyAmount) {
+            if (baseCost >= selfBalanceCRO + dummyAmount) {
                 const recommendedETHBalance =
                     BigInt(
                         ALLOW_BRIDGE_WETH && tx.token == ETH_ADDRESS
@@ -495,7 +497,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                     baseCost;
                 const formattedRecommendedBalance = ethers.formatEther(recommendedETHBalance);
                 throw new Error(
-                    `Not enough balance for deposit. Under the provided gas price, the recommended balance to perform a deposit is ${formattedRecommendedBalance} ETH`,
+                    `Not enough balance for deposit. Under the provided gas price, the recommended balance to perform a deposit is ${formattedRecommendedBalance} CRO`,
                 );
             }
 
